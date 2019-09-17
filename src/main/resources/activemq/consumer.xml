@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+    <!--开启包扫描-->
+    <context:annotation-config/>
+    <context:component-scan base-package="com.gusi.demo.jms.activemq.spring.consumer"/>
+
+    <!--activemq提供的jms的连接工厂-->
+    <bean id="targetConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+        <property name="brokerURL" value="tcp://127.0.0.1:61616"></property>
+    </bean>
+
+    <!--spring管理的连接工厂，可以使用Single或者Caching的连接工厂-->
+    <bean id="connectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
+        <property name="targetConnectionFactory" ref="targetConnectionFactory"></property>
+    </bean>
+
+    <!--队列模式-->
+    <bean id="destinationQueue" class="org.apache.activemq.command.ActiveMQQueue">
+        <constructor-arg value="firstQueue"></constructor-arg>
+    </bean>
+    <!--主题模式-->
+    <bean id="destinationTopic" class="org.apache.activemq.command.ActiveMQTopic">
+        <constructor-arg value="firstTopic"></constructor-arg>
+    </bean>
+
+    <!--消费者监听器-->
+    <bean id="listener1" class="com.gusi.demo.jms.activemq.spring.consumer.ConsumerMessageListenerTopic"></bean>
+    <bean id="listener2" class="com.gusi.demo.jms.activemq.spring.consumer.ConsumerMessageListenerQueue"></bean>
+
+    <!--加载消息容器-->
+    <bean id="jsmContainer1" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="connectionFactory" ref="connectionFactory"></property>
+        <property name="destination" ref="destinationTopic"></property>
+        <property name="messageListener" ref="listener1"></property>
+    </bean>
+    <bean id="jsmContainer2" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="connectionFactory" ref="connectionFactory"></property>
+        <property name="destination" ref="destinationQueue"></property>
+        <property name="messageListener" ref="listener2"></property>
+    </bean>
+
+</beans>
